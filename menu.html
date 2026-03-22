@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App Menu</title>
     <style>
+        * {
+            box-sizing: border-box; /* パディングを含めて幅を計算する */
+            }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
@@ -14,14 +17,18 @@
             min-height: 100vh;
             margin: 0;
             background-color: #f4f4f9;
+            padding: 0;
+            width: 100vw;       /* 画面の幅ぴったりにする */
+            overflow-x: hidden;  /* 横方向のはみ出しを強制的に隠す */
         }
         h1 {
             color: #333;
             margin-bottom: 30px;
         }
         .menu-container {
-            width: 90%;
             max-width: 400px;
+            width: 90%;        /* 親要素（body）を超えないようにする */
+            padding: 0 20px;    /* 左右に少し余白が欲しい場合はここを調整 */
         }
         .nav-button {
             display: block;
