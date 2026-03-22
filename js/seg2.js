@@ -32,7 +32,7 @@ function hasGetUserMedia() {
 const constraints = {
    video: true,
    video: { 
-    width: 840,
+    width: 1260,
     height: 840,
     facingMode: "user"
    }
