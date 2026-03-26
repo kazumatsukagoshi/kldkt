@@ -25,7 +25,7 @@ function resizeCanvases() {
   maskElement.width    = w;
   maskElement.height   = h;
 
-  document.querysSelector('.preview').style.height = '';
+  document.querysSelector('.preview').style.aspectRatio = w + ' / ' + h;
 }
 
 const gestureOutput = document.getElementById("gesture_output");
@@ -50,10 +50,9 @@ function hasGetUserMedia() {
 //   スマホ縦画面の 3:4 比率に合わせ portrait サイズを要求する。
 const constraints = {
   video: {
-    width:       { ideal: 840 },
-    height:      { ideal: 1120 },
+    width:       { ideal: 720 },
+    height:      { ideal: 1280 },
     facingMode:  "user",
-    aspectRatio: { ideal: 3 / 4 }  // 縦長(portrait): width/height < 1
   }
 };
 
