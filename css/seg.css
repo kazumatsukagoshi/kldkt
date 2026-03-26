@@ -63,7 +63,7 @@ body {
   /* cover ではなく fill（stretch）にして canvas の変換と一致させる。
      fill にしないと object-fit:cover がクロップ拡大する一方、
      canvas はそのまま拡大縮小されるため骨格座標がずれる。 */
-  object-fit: cover;
+  object-fit: fill;
   transform: scaleX(-1); /* フロントカメラを鏡像表示 */
 }
 
