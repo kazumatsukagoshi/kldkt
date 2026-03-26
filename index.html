@@ -1,5 +1,8 @@
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-<link rel="stylesheet" href="css/index2.css">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="css/index.css">
 <meta
 name="description"
 content="kalidokit test"
@@ -56,8 +59,8 @@ crossorigin="anonymous"
 <div id= "preview" class="preview">
   <video id="webcam" class="input_video"  autoplay muted playsinline></video>
   <canvas id="view" class="guides"></canvas>
-  <canvas class="output_canvas" id="output_canvas"  style="position: absolute; left: 0px; top: 0px;"></canvas>
-  <canvas class="mask_canvas" id="mask_canvas"  style="position: absolute; left: 0px; top: 0px;"></canvas>         
+  <canvas class="output_canvas" id="output_canvas"></canvas>
+  <canvas class="mask_canvas" id="mask_canvas"></canvas>         
 </div>
 <form>
     <button type="button" id="save" class="save">保存</button>
@@ -70,3 +73,4 @@ crossorigin="anonymous"
   <script src="js/renderer2.js"></script>
   
 </body>
+</html>

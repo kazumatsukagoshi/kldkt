@@ -1,16 +1,30 @@
 /* SETUP MEDIAPIPE HOLISTIC INSTANCE */
-let video = document.querySelector("video.input_video")
-video.width = window.outerWidth
-video.height = video.width * 1.3333333 //window.outerHeight
+let video = document.querySelector("video.input_video");
+// ★ 修正：video.width/height に window.outerWidth を代入していたが、
+//   これは CSS 表示サイズであってカメラの実ピクセル数ではない。
+//   canvas のバッファサイズを CSS サイズで設定すると、MediaPipe の
+//   0〜1 正規化座標をピクセルに変換する際に比率がずれる。
+//   → カメラ解像度(videoWidth/videoHeight)が確定する loadedmetadata 後に
+//     resizeCanvases() でバッファを揃える方式に変更。
 
 const canvasElement = document.getElementById("output_canvas");
-canvasElement.width = video.width
-canvasElement.height = video.height
 const canvasCtx = canvasElement.getContext("2d");
 const maskElement = document.getElementById("mask_canvas");
-maskElement.width = video.width
-maskElement.height = video.height
 const maskCtx = maskElement.getContext("2d");
+
+/**
+ * カメラ映像の実解像度（videoWidth / videoHeight）に
+ * 全キャンバスのピクセルバッファを合わせる。
+ * loadedmetadata イベント後に呼ぶことで値が確定している。
+ */
+function resizeCanvases() {
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  canvasElement.width  = w;
+  canvasElement.height = h;
+  maskElement.width    = w;
+  maskElement.height   = h;
+}
 
 const gestureOutput = document.getElementById("gesture_output");
 
@@ -29,13 +43,16 @@ function hasGetUserMedia() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
   // getUsermedia parameters.
+// ★ 修正：video: true と video:{...} が同オブジェクト内で重複（後者で上書き）。
+//   また width:1260, height:840 は横長(4:3)でスマホ縦画面に不適切。
+//   スマホ縦画面の 3:4 比率に合わせ portrait サイズを要求する。
 const constraints = {
-   video: true,
-   video: { 
-    width: 1260,
-    height: 840,
-    facingMode: "user"
-   }
+  video: {
+    width:       { ideal: 840 },
+    height:      { ideal: 1120 },
+    facingMode:  "user",
+    aspectRatio: { ideal: 4 / 3 }
+  }
 };
 
 const creatGestureLandmarker = async () => {
@@ -125,10 +142,13 @@ window.addEventListener('load', function () {
   //createjs.Ticker.addEventListener('tick', handleTick);
 
          // Activate the webcam stream.
- navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
-  video.srcObject = stream;
-  video.addEventListener("loadeddata", predictWebcam);
-});
+  navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+    video.srcObject = stream;
+    // ★ 修正：loadedmetadata でカメラ解像度が確定した直後にキャンバスをリサイズ。
+    //   その後 loadeddata で推論ループを開始する（順序が重要）。
+    video.addEventListener("loadedmetadata", resizeCanvases);
+    video.addEventListener("loadeddata", predictWebcam);
+  });
 
 });
 
@@ -181,8 +201,10 @@ function callbackForVideo(result) {
   ctx.putImageData(dataNew, 0, 0)
 
   var resizedcanvas = document.createElement('canvas');
-  resizedcanvas.width = window.outerWidth
-  resizedcanvas.height = window.outerHeight
+  // ★ 修正：window.outerWidth/Height（CSS ピクセル）ではなく
+  //   maskElement のバッファサイズ（実ピクセル）を使う
+  resizedcanvas.width  = maskElement.width;
+  resizedcanvas.height = maskElement.height;
   var resizedctx = resizedcanvas.getContext('2d');
   //resizedctx.drawImage(canvas, 0, 0, canvasElement.width, canvasElement.height)
   resizedctx.drawImage(canvas, 0, 0, maskElement.width, maskElement.height)
@@ -230,9 +252,11 @@ async function predictWebcam() {
         lineWidth: 2
       });
 
-      if ( index == 0){
-      startX = landmarks[8].x * video.width
-      startY = landmarks[8].y * video.height
+      if (index === 0) {
+        // ★ 修正：video.width/height は CSS 表示サイズ
+        //   パーティクル座標はキャンバスバッファ座標系で計算する必要がある
+        startX = landmarks[8].x * canvasElement.width;
+        startY = landmarks[8].y * canvasElement.height;
       }
       index++
     }
@@ -261,8 +285,8 @@ async function predictWebcam() {
             createjs.Ticker.addEventListener('tick', handleTick);
             targetTime = new Date().getTime() + 5500; 
             interval = setInterval(updateCountDown, 1000);
-         +  updateCountDown();
-           }
+            updateCountDown(); // 初回を即時実行してボタンに残り秒数を表示
+          }
         }
       } else{
         gestureOutput.innerText += `,[${i}] ${categoryName}:  ${handedness}`;
@@ -308,9 +332,10 @@ function updateCountDown(){
   const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
   document.getElementById("save").textContent = seconds;
-  if(seconds <= 0){
-   clearInterval(interval);
-   saveImage(); 
+  if (seconds <= 0) {
+    clearInterval(interval);
+    interval = null; // ★ 修正：null にしないと次回の保存トリガーが効かなくなる
+    saveImage();
   }
 }
 /**
@@ -320,7 +345,7 @@ document.querySelector("#save").addEventListener("click", () => {
   if (!interval){
    targetTime = new Date().getTime() + 5500; 
    interval = setInterval(updateCountDown, 1000);
-+  updateCountDown();
+   updateCountDown(); // 初回を即時実行してボタンに残り秒数を表示
   }
 })
 
@@ -333,9 +358,11 @@ function saveImage(){
   }, 500);
 
 
-    const ctx = picture.getContext("2d")
-    picture.width = video.height
-    picture.height = video.width
+    const ctx = picture.getContext("2d");
+    // ★ 修正：video.height/width は CSS サイズ属性（表示用）
+    //   実際の映像ピクセル数(videoWidth/videoHeight)で書き出す
+    picture.width  = video.videoWidth;
+    picture.height = video.videoHeight;
 
   // canvasに画像を貼り付ける
   ctx.drawImage(video, 0, 0, picture.width, picture.height);

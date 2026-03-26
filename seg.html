@@ -1,70 +1,113 @@
+<!--
+  seg.html
+  概要：
+    Webカメラ映像をリアルタイムに取り込み、MediaPipe Holistic で
+    全身・顔・手のランドマークを検出し、VRM アバターを Three.js で
+    描画する AR アプリ。
+    人物領域をセグメンテーション（切り抜き）しつつ、
+    手ジェスチャーの認識や写真保存・パーティクルエフェクトも行う。
+-->
 <head>
+<!-- アプリ固有のスタイルシート -->
 <link rel="stylesheet" href="css/seg.css">
 <meta
 name="description"
 content="mediapipe test"
 />
 
+<!-- モバイル対応：ビューポートを画面幅に合わせ、ユーザーによる拡縮を禁止 -->
 <meta
 name="viewport"
 content="viewport-fit=cover, user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"
 />
 
-<!--     Basic Three.js -->
+<!-- ===== Three.js 関連ライブラリ ===== -->
+<!--     Three.js 本体：3D シーン・カメラ・レンダラーの基盤 -->
 <script src="https://unpkg.com/three@0.133.0/build/three.js"></script>
-<!--     GLTF Loader for Three.js -->
+<!--     GLTF Loader：.glb / .gltf 形式の 3D モデルを読み込む -->
 <script src="https://unpkg.com/three@0.133.0/examples/js/loaders/GLTFLoader.js"></script>
-<!--     Orbit Controls for Three.js -->
+<!--     Orbit Controls：マウスやタッチでカメラ視点を操作する -->
 <script src="https://unpkg.com/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
-<!--     VRM Loader for Three.js -->
+<!--     three-vrm：VRM 形式のアバターモデルを Three.js で扱う（PixivのOSS） -->
 <script src="https://unpkg.com/@pixiv/three-vrm@0.6.7/lib/three-vrm.js"></script>
-<!--     Mediapipe or Tensorflow.js -->
+
+<!-- ===== MediaPipe 関連ライブラリ ===== -->
+<!--     Holistic：全身ポーズ・顔・両手のランドマークを同時検出する -->
 <script
 src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1635989137/holistic.js"
 crossorigin="anonymous"
 ></script>
 
-<!--     Mediapipe Drawing Tools -->
+<!--     Drawing Utils：ランドマークや骨格をキャンバスに描画するユーティリティ -->
 <script
 src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
 crossorigin="anonymous"
 ></script>
-<!--     Mediapipe Camera Tools -->
+<!--     Camera Utils：Webカメラからのフレームを MediaPipe へ供給する -->
 <script
 src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
 crossorigin="anonymous"
 ></script>
-<!--     Hand Gesture --> 
+<!--     Tasks Vision（手ジェスチャー認識用）：GestureRecognizer などの新 API を提供 -->
 <script
   src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js"
   crossorigin="anonymous" type = "module"
 ></script>
 
-  <!-- CreateJSのライブラリー読み込み -->
+  <!-- CreateJS：Canvas 2D 描画・アニメーション・イベント管理フレームワーク -->
   <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
 
-  <!-- パーティクルシステムのライブラリー読み込み -->
+  <!-- パーティクルシステム：エフェクト演出用のカスタムライブラリ -->
   <script src="js/particlejs.min.js"></script>
 
 
 </head>
 <body>
+  <!-- シャッター音：写真保存ボタン押下時に再生する効果音 -->
   <audio id="se" preload="auto">
     <source src="Camera-Film01-1.mp3" type="audio/mp3">
   </audio>
-<div id= "preview" class="preview" >
-  <video id="webcam" class="input_video"  autoplay muted playsinline></video>
+
+<!-- ===== プレビュー領域：複数の Canvas を重ねて AR 合成を実現 ===== -->
+<!--
+  【レイヤー重ね合わせの仕組み】
+  .preview を position:relative の基準にし、
+  全子要素を position:absolute + top:0/left:0 + width/height:100% にすることで
+  全レイヤーが同じ位置・同じサイズに揃い、ずれが生じない。
+  （CSS の .preview video, .preview canvas ルールで一括適用）
+
+  【重ね順（下→上）】
+  1. #webcam        : カメラ映像（最下層・背景）
+  2. #view          : Three.js VRM アバター
+  3. #output_canvas : MediaPipe ランドマーク・骨格
+  4. #mask_canvas   : セグメンテーションマスク（最上層）
+-->
+<div id="preview" class="preview">
+  <!-- 1. Webカメラ映像：MediaPipe の入力ソース兼背景映像 -->
+  <video id="webcam" class="input_video" autoplay muted playsinline></video>
+  <!-- 2. Three.js VRMアバター描画キャンバス
+         ★修正点：以前は position:absolute がなく通常フローに入りずれていた -->
   <canvas id="view" class="guides"></canvas>
-  <canvas class="output_canvas" id="output_canvas"  style="position: absolute; left: 0px; top: 0px;"></canvas>
-  <canvas class="mask_canvas" id="mask_canvas"  style="position: absolute; left: 0px; top: 0px;"></canvas>   
+  <!-- 3. MediaPipe ランドマーク・骨格描画キャンバス
+         ★修正点：インライン style を削除 → CSS で一括管理 -->
+  <canvas class="output_canvas" id="output_canvas"></canvas>
+  <!-- 4. セグメンテーションマスク描画キャンバス
+         ★修正点：インライン style を削除 → CSS で一括管理 -->
+  <canvas class="mask_canvas" id="mask_canvas"></canvas>
 </div>
+
+<!-- 写真保存ボタン：クリックで現在の合成映像をキャプチャ・保存する -->
 <form>
     <button type="button" id="save" class="save">保存</button>
 </form>
+    <!-- 手ジェスチャーの認識結果をテキストで表示する領域 -->
     <p id='gesture_output' class="output"></p>
+
+<!-- 最終合成画像の書き出し先キャンバス（840×1260 px の縦長フォーマット） -->
 <canvas id="picture" width="840" height="1260" ></canvas>
 
   
+  <!-- メインロジック：セグメンテーション・AR合成・ジェスチャー処理をまとめたモジュール -->
   <script type="module" src="js/seg2.js"></script>
   
 </body>

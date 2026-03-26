@@ -1,113 +1,96 @@
-Index.css
-/*
-@font-face {
-    font-family: "Jelly";
-    font-display: block;
-    src: url("https://yeemachine.github.io/kalidoface-live2d-models/Font/kalidoface-jelly.ttf") format("truetype");
-}
-h1 {
-    font-family: "Jelly";
-    font-size: 32px;
-    color: white;
-    position: absolute;
-    top: -12px;
-    left: 16px;
-    font-weight: normal;
-    -webkit-font-feature-settings: "liga";
-    font-feature-settings: "liga";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-h1:hover {
-    color: #13a3f3;
+/* ============================================================
+  seg.css
+  スマホ縦画面・横幅基準の 3:4 レイアウト用スタイル
+
+  【ずれが起きる主な原因と対策】
+  1. 重ねる要素に position:absolute がないと通常フローに入り
+     後続要素の表示位置がずれる
+     → .preview 内の全 video / canvas を position:absolute に統一
+  2. 親要素に position:relative がないと absolute の基準が
+     意図しない祖先要素になる
+     → .preview に position:relative を付与
+  3. CSS の表示サイズ と canvas の width/height 属性（ピクセルバッファ）
+     が一致していないと、MediaPipe の座標変換がずれる
+     → JS 側で canvas.width / canvas.height をカメラ解像度に合わせること
+        （seg2.js 内の resizeCanvases() 参照）
+  ============================================================ */
+
+/* --- リセット --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-a,
-a:visited,
-a:link {
-    text-decoration: none;
-    color: #222;
-    display: inline-block;
-}
-
-a:hover,
-a:visited:hover,
-
-
-a:link:hover {
-    color: #13a3f3;
-    cursor: pointer;
-}
-*/
-a,
-.preview {
-    display: flex;
-    /*flex-direction: column; */
-    position: absolute;
-    width: 100%;
-/*   bottom: 16px;
-    right: 16px;
-    */
-    overflow: hidden;
-    border-radius: 8px;
-    background: #222;
-}
-video {
-    height: auto;
-    transform: scale(-1, 1);
-    /*width: 840;*/
-    display: flex;
-    bottom: 0;
-    left: 0;
-  
-}
-
-.preview canvas {
-    transform: scale(-1, 1);
-}
 body {
-    margin: 0;
-}
-canvas {
-    display: block;
-}
-.guides {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: auto;
-    width: 100%;
-    z-index: 1;
-}
-.output_canvas {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: auto;
-    width: 100%;
-    z-index: 1;
-}
-.mask_canvas {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: auto;
-    width: 100%;
-    z-index: 1;
+  background: #000;
+  color: #fff;
+  font-family: sans-serif;
+  overflow-x: hidden;
 }
 
+/* ============================================================
+  プレビュー領域
+  ・横幅 = 画面幅 (100vw)
+  ・高さ = 横幅 × 4/3（縦長 3:4 アスペクト比）
+  ・はみ出した映像はクリップ
+  ============================================================ */
+.preview {
+  position: relative;          /* 子要素の absolute 基準 */
+  width: 100vw;
+  height: calc(100vw * 4 / 3); /* 3:4 縦長 */
+  overflow: hidden;
+  background: #000;
+}
+
+/* ============================================================
+  プレビュー内の全レイヤー（映像 + 全キャンバス）を完全に重ねる
+  ・position:absolute + top/left:0 で同じ起点に揃える
+  ・width/height:100% で親と同サイズにする
+  ・object-fit:cover でカメラ映像を 3:4 にトリミング
+  ============================================================ */
+.preview video,
+.preview canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* video だけ object-fit を指定（canvas には不要） */
+.preview video {
+  object-fit: cover;
+}
+
+/* ============================================================
+  UI パーツ
+  ============================================================ */
+
+/* 保存ボタン */
 .save {
-    position: relative;
-    z-index: 9;
+  display: block;
+  margin: 8px auto;
+  padding: 10px 28px;
+  font-size: 16px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
 }
 
-.output{
-    position: relative;
-    z-index: 8;
+/* ジェスチャー出力テキスト */
+.output {
+  text-align: center;
+  font-size: 18px;
+  margin: 4px 0;
 }
 
-@media only screen and (max-width: 1106px) {
-    video {
-        max-width: 1106px;
-    }
+/* ============================================================
+  書き出し用キャンバス（#picture）
+  通常は画面外に隠す。必要に応じて表示する。
+  ============================================================ */
+#picture {
+  display: none;
 }
