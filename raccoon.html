@@ -12,7 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. 
 -->
-
+<!DOCTYPE html>
+<html>
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -42,7 +43,7 @@ limitations under the License.
   <div id= "preview" class="preview">
   <video id="webcam" class="input_video"  autoplay muted playsinline></video>
   <canvas id="view" class="guides"></canvas>
-  <canvas class="output_canvas" id="output_canvas"  style="position: absolute; left: 0px; top: 0px;"></canvas>      
+  <canvas class="output_canvas" id="output_canvas"></canvas>      
 </div>
 <form>
     <button type="button" id="save" class="save">保存</button>
@@ -53,3 +54,4 @@ limitations under the License.
   <script type="module" src="js/renderer-r.js"></script>
   
 </body>
+</html>

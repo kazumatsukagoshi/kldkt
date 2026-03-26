@@ -5,7 +5,7 @@ let videoElement = document.querySelector(".input_video"),
 
 window.onload = function() {
 
-  option = {video: true};
+  const option = {video: true};
   navigator.mediaDevices.getUserMedia(option).then(function(stream) {
       // 入出力デバイスの取得
       navigator.mediaDevices.enumerateDevices().then(function(devices) {
@@ -22,9 +22,8 @@ window.onload = function() {
       // 停止
       stream.getTracks().forEach(function(track) {
           track.stop();
-
-      startCamera();
       });
+      startCamera();
   }).catch(function (err) {
        console.error(err);
      });
@@ -58,7 +57,6 @@ function startCamera() {
   
   // getUsermedia parameters.
   const constraints = {
-    video: true,
    video: {
      deviceId: videoDeviceId,
      width: 1260,
@@ -466,6 +464,7 @@ function updateCountDown(){
   document.getElementById("countdown-sec").textContent = seconds;
   if(seconds <= 0){
    clearInterval(interval);
+   interval = null;
    saveImage(); 
   }
 }
@@ -476,7 +475,7 @@ document.querySelector("#save").addEventListener("click", () => {
   if (!interval) {
     targetTime = new Date().getTime() + 5500; 
     interval = setInterval(updateCountDown, 1000);
-+   updateCountDown();
+    updateCountDown();
   }
 })
 

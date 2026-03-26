@@ -1,4 +1,4 @@
-Index.css
+/* index.css */
 /*
 @font-face {
     font-family: "Jelly";
@@ -79,6 +79,14 @@ canvas {
     z-index: 1;
 }
 
+/* output_canvas / mask_canvas: インラインスタイルの代替 */
+.output_canvas,
+.mask_canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 .save {
     position: relative;
     z-index: 9;
@@ -98,4 +106,9 @@ canvas {
     border-radius: 10px;
     background-color: #ffff;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* 書き出し用キャンバスは通常非表示 */
+#picture {
+    display: none;
 }
