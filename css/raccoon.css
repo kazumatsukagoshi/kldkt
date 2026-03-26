@@ -45,22 +45,6 @@ canvas {
     cursor: pointer;
 }
 
-/* カメラ選択UI（プレビュー内オーバーレイ） */
-.camera-select {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    white-space: nowrap;
-    margin: 0;
-}
-
 /* 書き出し用キャンバスは通常非表示 */
 #picture {
     display: none;

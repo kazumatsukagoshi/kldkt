@@ -18,58 +18,12 @@ const maskCtx = maskElement.getContext("2d");
  * loadedmetadata イベント後に呼ぶことで値が確定している。
  */
 function resizeCanvases() {
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-
-  // canvas バッファはビデオフレームの生ピクセルサイズに合わせる。
-  canvasElement.width  = vw;
-  canvasElement.height = vh;
-  maskElement.width    = vw;
-  maskElement.height   = vh;
-
-  // 前回 JS で上書きした aspectRatio インラインスタイルをリセットし
-  // CSS の aspect-ratio: 3/4（縦長固定）を有効にする。
-  document.querySelector('.preview').style.aspectRatio = '';
-
-  const preview = document.querySelector('.preview');
-  const cW = preview.offsetWidth;
-  const cH = preview.offsetHeight;
-
-  // ---- 回転検出 ----
-  // スマホカメラのセンサーは物理的に横向きのため、縦持ちでも
-  // vw > vh の横長ピクセルを返す機種がある。
-  // ブラウザは 90° 回転して縦長に見せるが videoWidth/videoHeight は生ピクセル値のまま。
-  // → cover 計算では「回転後の有効サイズ（縦長）」を使い、
-  //   canvas にも同じ 90° 回転を CSS で適用して映像と重ねる。
-  const needsRotation = (vw > vh) && (cH > cW);
-  const effectiveW = needsRotation ? vh : vw;  // 表示上の横幅
-  const effectiveH = needsRotation ? vw : vh;  // 表示上の高さ
-
-  // object-fit:cover と同じスケール・オフセットを再現
-  const s     = Math.max(cW / effectiveW, cH / effectiveH);
-  const dispW = Math.round(effectiveW * s);  // 表示上の横幅（クリップ前）
-  const dispH = Math.round(effectiveH * s);  // 表示上の高さ（クリップ前）
-  const offX  = Math.round((dispW - cW) / 2);
-  const offY  = Math.round((dispH - cH) / 2);
-
-  [canvasElement, maskElement].forEach(function(el) {
-    if (needsRotation) {
-      // rotate(90deg) 後に視覚サイズが dispW×dispH になるよう、
-      // 回転前の CSS width/height は dispH×dispW（縦横を逆に設定）。
-      // 回転の基点（中央）がコンテナ中央と一致するよう left/top を計算。
-      el.style.width  = dispH + 'px';
-      el.style.height = dispW + 'px';
-      el.style.left   = (-offX + (dispW - dispH) / 2) + 'px';
-      el.style.top    = (-offY + (dispH - dispW) / 2) + 'px';
-      el.style.transform = 'rotate(90deg) scaleX(-1)';
-    } else {
-      el.style.width  = dispW + 'px';
-      el.style.height = dispH + 'px';
-      el.style.left   = (-offX) + 'px';
-      el.style.top    = (-offY) + 'px';
-      el.style.transform = '';  // CSS クラスの scaleX(-1) を使用
-    }
-  });
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  canvasElement.width  = w;
+  canvasElement.height = h;
+  maskElement.width    = w;
+  maskElement.height   = h;
 }
 
 const gestureOutput = document.getElementById("gesture_output");
@@ -84,36 +38,6 @@ import {
   DrawingUtils
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.1.0-alpha-16";
 let gestureRecognizer;
-let localStream;
-
-function addOption(target, key, value) {
-  const sel = document.getElementById(target);
-  const opt = document.createElement('option');
-  opt.appendChild(document.createTextNode(value));
-  opt.value = key;
-  sel.appendChild(opt);
-}
-
-function startCamera() {
-  if (localStream) {
-    video.srcObject = null;
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-  }
-  const sel = document.getElementById('videoOptions');
-  const deviceId = sel && sel.value ? sel.value : null;
-  const c = deviceId
-    ? { video: { deviceId: { exact: deviceId }, width: { ideal: 840 }, height: { ideal: 1120 } } }
-    : constraints;
-  navigator.mediaDevices.getUserMedia(c).then(function(stream) {
-    localStream = stream;
-    video.srcObject = stream;
-    video.addEventListener("loadedmetadata", resizeCanvases, { once: true });
-    video.addEventListener("loadeddata", predictWebcam, { once: true });
-  }).catch(function(err) {
-    console.error(err);
-  });
-}
 
 function hasGetUserMedia() {
   return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -124,9 +48,10 @@ function hasGetUserMedia() {
 //   スマホ縦画面の 3:4 比率に合わせ portrait サイズを要求する。
 const constraints = {
   video: {
-    width:      { ideal: 720 },
-    height:     { ideal: 1280 }, // height > width で縦長フレームを要求
-    facingMode: "user",
+    width:       { ideal: 840 },
+    height:      { ideal: 1120 },
+    facingMode:  "user",
+    aspectRatio: { ideal: 3 / 4 }  // 縦長(portrait): width/height < 1
   }
 };
 
@@ -216,18 +141,13 @@ window.addEventListener('load', function () {
   // 定期的に呼ばれる関数を登録
   //createjs.Ticker.addEventListener('tick', handleTick);
 
-  // 権限取得 → デバイス列挙 → select に登録 → カメラ起動
-  navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-    navigator.mediaDevices.enumerateDevices().then(function(devices) {
-      devices.forEach(function(d) {
-        if (d.kind === 'videoinput') addOption('videoOptions', d.deviceId, d.label);
-      });
-      document.getElementById('videoOptions').addEventListener('change', startCamera);
-      stream.getTracks().forEach(t => t.stop());
-      startCamera();
-    });
-  }).catch(function(err) {
-    console.error(err);
+         // Activate the webcam stream.
+  navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+    video.srcObject = stream;
+    // ★ 修正：loadedmetadata でカメラ解像度が確定した直後にキャンバスをリサイズ。
+    //   その後 loadeddata で推論ループを開始する（順序が重要）。
+    video.addEventListener("loadedmetadata", resizeCanvases);
+    video.addEventListener("loadeddata", predictWebcam);
   });
 
 });
