@@ -46,10 +46,9 @@ class BasicScene {
         this.lastTime = 0;
         this.callbacks = [];
         // Initialize the canvas with the same aspect ratio as the video input
-        //this.height = window.innerHeight;
-        //this.width = (this.height * 1280) / 720;
-         this.height = 1106;
-         this.width = 820;     
+        // 画面サイズに合わせて初期化（固定値だとスマホで幅オーバーフローする）
+        this.height = window.innerHeight;
+        this.width = window.innerWidth;
         // Set up the Three.js scene, camera, and renderer
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.01, 5000);

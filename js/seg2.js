@@ -51,7 +51,7 @@ const constraints = {
     width:       { ideal: 840 },
     height:      { ideal: 1120 },
     facingMode:  "user",
-    aspectRatio: { ideal: 4 / 3 }
+    aspectRatio: { ideal: 3 / 4 }  // 縦長(portrait): width/height < 1
   }
 };
 

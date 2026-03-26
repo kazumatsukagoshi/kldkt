@@ -60,9 +60,14 @@ body {
 
 /* video だけ object-fit を指定（canvas には不要） */
 .preview video {
-  object-fit: cover;
-  transform: scaleX(-1);
+  /* cover ではなく fill（stretch）にして canvas の変換と一致させる。
+     fill にしないと object-fit:cover がクロップ拡大する一方、
+     canvas はそのまま拡大縮小されるため骨格座標がずれる。 */
+  object-fit: fill;
+  transform: scaleX(-1); /* フロントカメラを鏡像表示 */
 }
+
+/* キャンバス群も video と同じ向きに揃える */
 .preview canvas {
   transform: scaleX(-1);
 }
