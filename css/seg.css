@@ -61,6 +61,10 @@ body {
 /* video だけ object-fit を指定（canvas には不要） */
 .preview video {
   object-fit: cover;
+  transform: scaleX(-1);
+}
+.preview canvas {
+  transform: scaleX(-1);
 }
 
 /* ============================================================
