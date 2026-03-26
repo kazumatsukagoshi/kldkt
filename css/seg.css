@@ -38,7 +38,7 @@ body {
 .preview {
   position: relative;          /* 子要素の absolute 基準 */
   width: 100vw;
-  height: calc(100vw * 4 / 3); /* 3:4 縦長 */
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: #000;
 }
