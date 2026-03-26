@@ -38,7 +38,7 @@ body {
 .preview {
   position: relative;          /* 子要素の absolute 基準 */
   width: 100vw;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 4;         /* 縦長 3:4（calc より確実） */
   overflow: hidden;
   background: #000;
 }
@@ -60,10 +60,7 @@ body {
 
 /* video だけ object-fit を指定（canvas には不要） */
 .preview video {
-  /* cover ではなく fill（stretch）にして canvas の変換と一致させる。
-     fill にしないと object-fit:cover がクロップ拡大する一方、
-     canvas はそのまま拡大縮小されるため骨格座標がずれる。 */
-  object-fit: fill;
+  object-fit: cover;   /* 縦長コンテナを正しくクロップ表示 */
   transform: scaleX(-1); /* フロントカメラを鏡像表示 */
 }
 
@@ -94,6 +91,13 @@ body {
   text-align: center;
   font-size: 18px;
   margin: 4px 0;
+}
+
+/* カメラ選択UI */
+.camera-select {
+  padding: 6px 8px;
+  font-size: 14px;
+  color: #fff;
 }
 
 /* ============================================================

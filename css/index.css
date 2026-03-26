@@ -39,14 +39,8 @@ a:link:hover {
     cursor: pointer;
 }
 */
-a,
 .preview {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-/*   bottom: 16px;
-    right: 16px;
-    */
+    position: relative;
     overflow: hidden;
     border-radius: 8px;
     background: #222;
@@ -106,6 +100,12 @@ canvas {
     border-radius: 10px;
     background-color: #ffff;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* カメラ選択UI */
+.camera-select {
+    padding: 6px 8px;
+    font-size: 14px;
 }
 
 /* 書き出し用キャンバスは通常非表示 */
