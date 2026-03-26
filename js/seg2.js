@@ -25,6 +25,7 @@ function resizeCanvases() {
   maskElement.width    = w;
   maskElement.height   = h;
 
+  document.querysSelector('.preview').style.height = '';
 }
 
 const gestureOutput = document.getElementById("gesture_output");
