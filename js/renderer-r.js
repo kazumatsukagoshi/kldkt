@@ -14,7 +14,7 @@ limitations under the License. */
 import * as THREE from "https://cdn.skypack.dev/three@0.150.1";
 import { OrbitControls } from "https://cdn.skypack.dev/three@0.150.1/examples/jsm/controls/OrbitControls";
 import { GLTFLoader } from "https://cdn.skypack.dev/three@0.150.1/examples/jsm/loaders/GLTFLoader";
-import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.1.0-alpha-16";
+import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 /**
  * Returns the world-space dimensions of the viewport at `depth` units away from
  * the camera.
@@ -328,7 +328,7 @@ async function runDemo() {
     }
     document.getElementById('videoOptions').addEventListener('change', startCamera);
     await startCamera();
-    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.1.0-alpha-16/wasm");
+    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
     faceLandmarker = await FaceLandmarker.createFromModelPath(vision, "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task");
     await faceLandmarker.setOptions({
         baseOptions: { delegate: "GPU" },
