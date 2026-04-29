@@ -11,9 +11,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
-import * as THREE from "https://cdn.skypack.dev/three@0.150.1";
-import { OrbitControls } from "https://cdn.skypack.dev/three@0.150.1/examples/jsm/controls/OrbitControls";
-import { GLTFLoader } from "https://cdn.skypack.dev/three@0.150.1/examples/jsm/loaders/GLTFLoader";
+import * as THREE from "https://cdn.skypack.dev/three@0.182.0";
+import { OrbitControls } from "https://cdn.skypack.dev/three@0.182.0/examples/jsm/controls/OrbitControls";
+import { GLTFLoader } from "https://cdn.skypack.dev/three@0.182.0/examples/jsm/loaders/GLTFLoader";
 import { FilesetResolver, FaceLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 /**
  * Returns the world-space dimensions of the viewport at `depth` units away from
