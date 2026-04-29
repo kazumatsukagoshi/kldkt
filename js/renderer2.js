@@ -111,7 +111,7 @@ const onResults = (results) => {
 
 const holistic = new Holistic({
     locateFile: file => {
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1635989137/${file}`;
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@latest/${file}`;
     }
   });
 
