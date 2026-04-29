@@ -230,6 +230,7 @@ class Avatar {
 }
 let faceLandmarker;
 let video;
+let localStream;
 const scene = new BasicScene();
 //const avatar = new Avatar("https://assets.codepen.io/9177687/raccoon_head.glb", scene.scene);
 const avatar = new Avatar("https://kazumatsukagoshi.github.io/kldkt/colapsed.glb", scene.scene);
@@ -278,44 +279,59 @@ function retarget(blendshapes) {
     return coefsMap;
 }
 function onVideoFrame(time) {
-    // Do something with the frame.
     detectFaceLandmarks(time);
-    // Re-register the callback to be notified about the next frame.
     video.requestVideoFrameCallback(onVideoFrame);
 }
-// Stream webcam into landmarker loop (and also make video visible)
-async function streamWebcamThroughFaceLandmarker() {
+
+function addOption(target, key, value) {
+    const sel = document.getElementById(target);
+    const opt = document.createElement('option');
+    opt.appendChild(document.createTextNode(value));
+    opt.value = key;
+    sel.appendChild(opt);
+}
+
+async function startCamera() {
     video = document.getElementById("webcam");
-    function onAcquiredUserMedia(stream) {
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            video.play();
-        };
+    if (localStream) {
+        video.srcObject = null;
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
     }
+    const sel = document.getElementById('videoOptions');
+    const deviceId = sel && sel.value ? sel.value : null;
+    const videoConstraints = deviceId
+        ? { deviceId: { exact: deviceId }, width: window.innerWidth, height: window.innerHeight }
+        : { facingMode: "user", width: window.innerWidth, height: window.innerHeight };
     try {
-        const evt = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-                facingMode: "user",
-                width: 1106,
-                height: 820
-            }
-        });
-        onAcquiredUserMedia(evt);
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: videoConstraints });
+        localStream = stream;
+        video.srcObject = stream;
+        video.onloadedmetadata = () => { video.play(); };
         video.requestVideoFrameCallback(onVideoFrame);
-    }
-    catch (e) {
+    } catch (e) {
         console.error(`Failed to acquire camera feed: ${e}`);
     }
 }
+
 async function runDemo() {
-    await streamWebcamThroughFaceLandmarker();
+    // 権限取得 → デバイス列挙 → select に登録
+    try {
+        const tmpStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        devices.forEach(d => {
+            if (d.kind === 'videoinput') addOption('videoOptions', d.deviceId, d.label);
+        });
+        tmpStream.getTracks().forEach(t => t.stop());
+    } catch (e) {
+        console.error(e);
+    }
+    document.getElementById('videoOptions').addEventListener('change', startCamera);
+    await startCamera();
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.1.0-alpha-16/wasm");
     faceLandmarker = await FaceLandmarker.createFromModelPath(vision, "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task");
     await faceLandmarker.setOptions({
-        baseOptions: {
-            delegate: "GPU"
-        },
+        baseOptions: { delegate: "GPU" },
         runningMode: "VIDEO",
         outputFaceBlendshapes: true,
         outputFacialTransformationMatrixes: true
