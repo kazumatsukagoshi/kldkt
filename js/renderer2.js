@@ -368,13 +368,13 @@ const animateVRM = (vrm, results) => {
       runtime: "mediapipe",
       video:videoElement,
     });
-    rigRotation("Hips", riggedPose?.Hips.rotation, 0.7);
+    rigRotation("Hips", riggedPose?.Hips?.rotation, 0.7);
     rigPosition(
       "Hips",
       {
-        x: -riggedPose?.Hips.position.x, // Reverse direction
-        y: riggedPose?.Hips.position.y + 1, // Add a bit of height
-        z: -riggedPose?.Hips.position.z // Reverse direction
+        x: -riggedPose?.Hips?.position?.x, // Reverse direction
+        y: riggedPose?.Hips?.position?.y + 1, // Add a bit of height
+        z: -riggedPose?.Hips?.position?.z // Reverse direction
       },
       1,
       0.07
@@ -399,9 +399,9 @@ const animateVRM = (vrm, results) => {
     riggedLeftHand = Kalidokit.Hand.solve(leftHandLandmarks, "Left");
     rigRotation("LeftHand", {
       // Combine pose rotation Z and hand rotation X Y
-      z: riggedPose?.LeftHand.z,
-      y: riggedLeftHand.LeftWrist.y,
-      x: riggedLeftHand.LeftWrist.x
+      z: riggedPose?.LeftHand?.z,
+      y: riggedLeftHand.LeftWrist?.y,
+      x: riggedLeftHand.LeftWrist?.x
     });
     rigRotation("LeftRingProximal", riggedLeftHand.LeftRingProximal);
     rigRotation("LeftRingIntermediate", riggedLeftHand.LeftRingIntermediate);
@@ -424,8 +424,8 @@ const animateVRM = (vrm, results) => {
     rigRotation("RightHand", {
       // Combine Z axis from pose hand and X/Y axis from hand wrist rotation
       z: riggedPose?.RightHand?.z,
-      y: riggedRightHand.RightWrist.y,
-      x: riggedRightHand.RightWrist.x
+      y: riggedRightHand.RightWrist?.y,
+      x: riggedRightHand.RightWrist?.x
     });
     rigRotation("RightRingProximal", riggedRightHand.RightRingProximal);
     rigRotation("RightRingIntermediate", riggedRightHand.RightRingIntermediate);
