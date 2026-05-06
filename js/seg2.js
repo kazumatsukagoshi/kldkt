@@ -142,6 +142,7 @@ window.addEventListener('load', function () {
   //createjs.Ticker.addEventListener('tick', handleTick);
 
          // Activate the webcam stream.
+  camera.updateProjectionMatrix();
   navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
     video.srcObject = stream;
     // ★ 修正：loadedmetadata でカメラ解像度が確定した直後にキャンバスをリサイズ。
