@@ -48,10 +48,10 @@ function hasGetUserMedia() {
 //   スマホ縦画面の 3:4 比率に合わせ portrait サイズを要求する。
 const constraints = {
   video: {
-    width:       { ideal: 1120 }, //逆にしてみる
-    height:      { ideal: 840 }, //逆にしてみる
+    width:       { ideal: 840 }, //逆にしてみる
+    height:      { ideal: 1120 }, //逆にしてみる
     facingMode:  "user",
-    aspectRatio: { ideal: 4 / 3 }  // 縦長(portrait): width/height < 1
+    aspectRatio: { ideal: 0.75 }
   }
 };
 
@@ -142,7 +142,6 @@ window.addEventListener('load', function () {
   //createjs.Ticker.addEventListener('tick', handleTick);
 
          // Activate the webcam stream.
-  camera.updateProjectionMatrix();
   navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
     video.srcObject = stream;
     // ★ 修正：loadedmetadata でカメラ解像度が確定した直後にキャンバスをリサイズ。
