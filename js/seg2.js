@@ -48,8 +48,8 @@ function hasGetUserMedia() {
 //   スマホ縦画面の 3:4 比率に合わせ portrait サイズを要求する。
 const constraints = {
   video: {
-    width:       { ideal: 840 },
-    height:      { ideal: 1120 },
+    width:       { ideal: 1120 }, //逆にしてみる
+    height:      { ideal: 840 }, //逆にしてみる
     facingMode:  "user",
     aspectRatio: { ideal: 3 / 4 }  // 縦長(portrait): width/height < 1
   }
